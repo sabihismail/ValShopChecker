@@ -1,15 +1,15 @@
 """Source: https://github.com/GamerNoTitle/Valora/blob/master/utils/RiotLogin.py#L43"""
 
 import ssl
-from typing import Any
-from collections import OrderedDict
 import requests
-from requests.adapters import HTTPAdapter
-import pandas
-from re import compile
-from colorama import Fore
 import time
 import sys
+from datetime import datetime
+from typing import Any
+from collections import OrderedDict
+from requests.adapters import HTTPAdapter
+from re import compile
+from colorama import Fore
 
 CIPHERS = [
     "ECDHE-ECDSA-AES128-GCM-SHA256",
@@ -48,8 +48,9 @@ class Auth:
         self.username = username
         self.password = password
         self.session = requests.Session() if not session else session
-        self.session.headers = OrderedDict({"User-Agent": f"RiotClient/{RIOT_CLIENT_BUILD} riot-status (Windows;10;;Professional, x64)",
-                                           "Accept-Language": "en-US,en;q=0.9", "Accept": "application/json, text/plain, */*"})
+        self.session.headers = OrderedDict(
+            {"User-Agent": f"RiotClient/{RIOT_CLIENT_BUILD} riot-status (Windows;10;;Professional, x64)",
+             "Accept-Language": "en-US,en;q=0.9", "Accept": "application/json, text/plain, */*"})
         self.session.mount("https://", SSLAdapter())
         self.authed = False
         self.MFA = False
@@ -68,7 +69,8 @@ class Auth:
         self.id_token = tokens[1]
 
         self.base_headers = {
-            "User-Agent": f"RiotClient/{RIOT_CLIENT_BUILD} riot-status (Windows;10;;Professional, x64)", "Authorization": f"Bearer {self.access_token}", }
+            "User-Agent": f"RiotClient/{RIOT_CLIENT_BUILD} riot-status (Windows;10;;Professional, x64)",
+            "Authorization": f"Bearer {self.access_token}", }
         self.session.headers.update(self.base_headers)
 
         self.entitlement = self.get_entitlement_token()
@@ -87,8 +89,10 @@ class Auth:
         # self.p = self.print()
 
     def authorize(self, mfa_code=""):
-        data = {"acr_values": "urn:riot:bronze", "claims": "", "client_id": "riot-client", "nonce": "oYnVwCSrlS5IHKh7iI16oQ",
-                "redirect_uri": "http://localhost/redirect", "response_type": "token id_token", "scope": "openid link ban lol_region", }
+        data = {"acr_values": "urn:riot:bronze", "claims": "", "client_id": "riot-client",
+                "nonce": "oYnVwCSrlS5IHKh7iI16oQ",
+                "redirect_uri": "http://localhost/redirect", "response_type": "token id_token",
+                "scope": "openid link ban lol_region", }
         data2 = {"language": "en_US", "password": self.password,
                  "remember": "true", "type": "auth", "username": self.username, }
 
@@ -166,8 +170,7 @@ class Auth:
         Tag = data1["tag_line"]
         time4 = data1["created_at"]
         time4 = int(time4)
-        Createdat = pandas.to_datetime(time4, unit="ms")
-        str(Createdat)
+        Createdat = datetime.fromtimestamp(time4 / 1000.0)
         data2 = data["ban"]
         data3 = data2.get("restrictions", [])
         typeban = None
@@ -180,8 +183,10 @@ class Auth:
                         exeperationdate = lol["expirationMillis"]
                         time1 = exeperationdate
                         time1 = int(time1)
-                        Exp = pandas.to_datetime(
-                            time1, unit="ms", errors="ignore")
+                        try:
+                            Exp = datetime.fromtimestamp(time1 / 1000.0)
+                        except:
+                            Exp = None
                         str(Exp)
                     typeban = "TIME_BAN"
                 if type == "PERMANENT_BAN":
@@ -208,17 +213,17 @@ class Auth:
 
         print()
         print(f"Accestoken: {self.access_token}")
-        print("-"*50)
+        print("-" * 50)
         print(f"Entitlements: {self.entitlement}")
-        print("-"*50)
+        print("-" * 50)
         print(f"Userid: {self.user_id}")
-        print("-"*50)
+        print("-" * 50)
         print(f"Region: {self.region}")
-        print("-"*50)
+        print("-" * 50)
         print(f"Name: {self.Name}#{self.Tag}")
-        print("-"*50)
-        print(f"Createdat: {self.creationdata}")
-        print("-"*50)
+        print("-" * 50)
+        print(f"Created at: {self.creationdata}")
+        print("-" * 50)
         print(f"Bantype: {self.typeban}")
 
 
