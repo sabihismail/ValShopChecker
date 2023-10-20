@@ -4,7 +4,7 @@
 ### Most of the code (riot auth) came from https://github.com/GamerNoTitle/Valora so shout out that guy
 
 ### Usage: 
-- Modify `config.yaml` to look something like:
+- Modify/create a file in the same directory as `main.py` called `config.yaml` and make it look something like:
 
 ```text
 accounts:
