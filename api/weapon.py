@@ -15,15 +15,14 @@ WEAPON_RARITY_DICT = {
 
 class Weapon:
     def __init__(self, uuid: str, cost: int = 0, discount: int = 0, discountPercentage: int = 0, lang: str = "en"):
+        if not uuid:
+            return
+
         conn = sqlite3.connect("res/data.db")
         c = conn.cursor()
         with open(f"res/{lang}.yml", encoding="utf8") as f:
             transtable = f.read()
         levelup_info = dict(yaml.load(transtable, Loader=yaml.FullLoader))["metadata"]["level"]
-        if lang == "zh-CN":
-            lang = "zh-TW"
-        with open(f"res/{lang}.yml", encoding="utf8") as f:
-            transtable = f.read()
         description_to_del = dict(yaml.load(transtable, Loader=yaml.FullLoader))["metadata"]["description"]
         self.uuid = uuid
         self.cost = cost
@@ -31,24 +30,23 @@ class Weapon:
         # Get Weapon Name
         if lang == "en":
             c.execute(f"SELECT name FROM skinlevels WHERE uuid = ?", (self.uuid,))
-            conn.commit()
-            self.name = c.fetchall()[0][0]
         else:
             c.execute(
                 f"SELECT 'name-{lang}' FROM skinlevels WHERE uuid = ?", (self.uuid,))
-            conn.commit()
-            self.name = c.fetchall()[0][0]
+
+        conn.commit()
+        self.name = c.fetchall()[0][0]
 
         # Get Weapon Data
         if lang == "en":
             c.execute(f"SELECT data FROM skins WHERE name = ?", (self.name,))
-            conn.commit()
-            self.data = json.loads(c.fetchall()[0][0])
         else:
             c.execute(
                 f"SELECT 'data-{lang}' FROM skins WHERE 'name-{lang}' = ?", (self.name,))
-            conn.commit()
-            self.data = json.loads(c.fetchall()[0][0])
+
+        conn.commit()
+        self.data = json.loads(c.fetchall()[0][0])
+
         self.levels = self.data["levels"]    # Skin Levels
         self.chromas = self.data["chromas"]  # Skin Chromas
         self.base_img = self.data["levels"][0]["displayIcon"]

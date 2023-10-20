@@ -169,7 +169,7 @@ class Auth:
         Createdat = pandas.to_datetime(time4, unit="ms")
         str(Createdat)
         data2 = data["ban"]
-        data3 = data2["restrictions"]
+        data3 = data2.get("restrictions", [])
         typeban = None
         if data3 != []:
             for x in data3:

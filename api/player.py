@@ -114,7 +114,15 @@ class Player:
             offer_id = item["OfferID"]
             cost = item["Cost"]["85ad13f7-3d1b-5128-9eb2-7cd8ee0b5741"]
 
-            weapons.append(Weapon(offer_id, cost))
+            try:
+                weapon = Weapon(offer_id, cost)
+            except IndexError:
+                weapon = Weapon("")
+
+                weapon.name = f"N/A (unsupported id: {offer_id})"
+                weapon.cost = cost
+
+            weapons.append(weapon)
 
         return weapons
 
