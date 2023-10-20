@@ -77,7 +77,6 @@ class Player:
                 self.auth = False
             else:
                 self.auth = True
-            self.get_wallet()
 
     def get_wallet(self):
         data = requests.get(f"{self.server}{Api.wallet}{self.user_id}",
