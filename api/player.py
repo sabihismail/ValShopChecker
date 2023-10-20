@@ -1,41 +1,38 @@
 """Source: https://github.com/GamerNoTitle/Valora/blob/master/utils/GetPlayer.py"""
+from collections import namedtuple
 
 import requests
 
-from api.weapon import Weapon
 
 # server list
-apServer = "https://pd.ap.a.pvp.net"
-naServer = "https://pd.na.a.pvp.net"
-euServer = "https://pd.eu.a.pvp.net"
-krServer = "https://pd.kr.a.pvp.net"
-
-RIOT_CLIENT_VERSION = requests.get("https://valorant-api.com/v1/version", timeout=30).json()["data"]["riotClientVersion"]
+AP_SERVER = "https://pd.ap.a.pvp.net"
+NA_SERVER = "https://pd.na.a.pvp.net"
+EU_SERVER = "https://pd.eu.a.pvp.net"
+KR_SERVER = "https://pd.kr.a.pvp.net"
 
 # API path
+API_ACCOUNT_XP = "/account-xp/v1/players/"
+API_MMR = "/mmr/v1/players/"
+API_STORE = "/store/v2/storefront/"
+API_WALLET = "/store/v1/wallet/"
+API_OWNED = "/store/v1/entitlements/"
 
-class api:
-    def __init__(self):
-        self.accountXP = "/account-xp/v1/players/"
-        self.mmr = "/mmr/v1/players/"
-        self.store = "/store/v2/storefront/"
-        self.wallet = "/store/v1/wallet/"
-        self.owned = "/store/v1/entitlements/"
-Api = api()
+# UUIDs
+UUID_AGENTS = "01bb38e1-da47-4e6a-9b3d-945fe4655707"
+UUID_CONTRACTS = "f85cb6f7-33e5-4dc8-b609-ec7212301948"
+UUID_SPRAYS = "d5f120f8-ff8c-4aac-92ea-f2b5acbe9475"
+UUID_GUN_BUDDIES = "dd3bf334-87f3-40bd-b043-682a57a8dc3a"
+UUID_PLAYER_CARDS = "3f296c07-64c3-494c-923b-fe692a4fa1bd"
+UUID_SKINS = "e7c63390-eda7-46e0-bb7a-a6abdacd2433"
+UUID_CHROMAS = "3ad1b2b2-acdb-4524-852f-954a76ddae0a"
+UUID_PLAYER_TITLES = "de7caa6b-adf7-4588-bbd1-143831e786c6"
 
-# owned item type
-class options:
-    def __init__(self):
-        self.agents = "01bb38e1-da47-4e6a-9b3d-945fe4655707"
-        self.contracts = "f85cb6f7-33e5-4dc8-b609-ec7212301948"
-        self.sprays = "d5f120f8-ff8c-4aac-92ea-f2b5acbe9475"
-        self.gun_buddies = "dd3bf334-87f3-40bd-b043-682a57a8dc3a"
-        self.player_cards = "3f296c07-64c3-494c-923b-fe692a4fa1bd"
-        self.skins = "e7c63390-eda7-46e0-bb7a-a6abdacd2433"
-        self.chromas = "3ad1b2b2-acdb-4524-852f-954a76ddae0a"
-        self.player_titles = "de7caa6b-adf7-4588-bbd1-143831e786c6"
+# Initialized variables
+RIOT_CLIENT_VERSION = requests.get("https://valorant-api.com/v1/version", timeout=30).json()["data"]["riotClientVersion"]
+WEAPON_UUID_MAPPING = {x["uuid"]: x for x in requests.get("https://valorant-api.com/v1/weapons/skinlevels").json()["data"]}
 
-Options = options()
+# Classes
+Weapon = namedtuple("Weapon", ["name", "cost", "image"])
 
 
 class Player:
@@ -51,18 +48,18 @@ class Player:
             "Content-Type": "application/json"
         }
         if region == "ap":
-            server = apServer
+            server = AP_SERVER
         elif region == "eu":
-            server = euServer
+            server = EU_SERVER
         elif region == "na":
-            server = naServer
+            server = NA_SERVER
         else:
-            server = krServer
+            server = KR_SERVER
         self.server = server
         self.user_id = user_id
         self.down = False
         response = requests.get(
-            f"{server}{Api.store}{user_id}", headers=self.__header, timeout=30)
+            f"{server}{API_STORE}{user_id}", headers=self.__header, timeout=30)
         if response.status_code >= 500:
             self.down = True
             raise requests.exceptions.ConnectionError(f"It seems that Riot Games server run into an error ({response.status_code}): " + response.text)
@@ -79,7 +76,7 @@ class Player:
                 self.auth = True
 
     def get_wallet(self):
-        data = requests.get(f"{self.server}{Api.wallet}{self.user_id}",
+        data = requests.get(f"{self.server}{API_WALLET}{self.user_id}",
                             headers=self.__header, timeout=30).json()
         try:
             self.vp = data["Balances"]["85ad13f7-3d1b-5128-9eb2-7cd8ee0b5741"]
@@ -90,7 +87,7 @@ class Player:
         self.wallet = data
 
     def get_skins(self):
-        data = requests.get(f"{self.server}{Api.owned}{self.user_id}/{Options.skins}", headers=self.__header, timeout=30).json()
+        data = requests.get(f"{self.server}{API_OWNED}{self.user_id}/{UUID_SKINS}", headers=self.__header, timeout=30).json()
         skins = data["Entitlements"]
         owned_skins = []
         for skin in skins:
@@ -99,7 +96,7 @@ class Player:
         return skins, owned_skins
 
     def get_chromas(self):
-        data = requests.get(f"{self.server}{Api.owned}{self.user_id}/{Options.chromas}", headers=self.__header, timeout=30).json()
+        data = requests.get(f"{self.server}{API_OWNED}{self.user_id}/{UUID_CHROMAS}", headers=self.__header, timeout=30).json()
         chromas = data["Entitlements"]
         owned_chromas = []
         for chroma in chromas:
@@ -113,14 +110,15 @@ class Player:
         for item in shop["SingleItemStoreOffers"]:
             offer_id = item["OfferID"]
             cost = item["Cost"]["85ad13f7-3d1b-5128-9eb2-7cd8ee0b5741"]
+            weapon_obj = WEAPON_UUID_MAPPING.get(offer_id)
+
+            name = weapon_obj["displayName"]
+            image = weapon_obj["displayIcon"]
 
             try:
-                weapon = Weapon(offer_id, cost)
+                weapon = Weapon(name, cost, image)
             except IndexError:
-                weapon = Weapon("")
-
-                weapon.name = f"N/A (unsupported id: {offer_id})"
-                weapon.cost = cost
+                weapon = Weapon(f"N/A (unsupported id: {offer_id})", cost, "")
 
             weapons.append(weapon)
 

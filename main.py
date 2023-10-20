@@ -1,20 +1,12 @@
 import logging
 
 import click
-import requests
 import yaml
 
 from api.player import Player
 from api.riot import Auth
 
 log = logging.getLogger(__name__)
-
-AUTH_URL = "https://auth.riotgames.com/api/v1/authorization"
-REGION_URL = 'https://riot-geo.pas.si.riotgames.com/pas/v1/product/valorant'
-VERIFIED_URL = "https://email-verification.riotgames.com/api/v1/account/status"
-ENTITLEMENT_URL = 'https://entitlements.auth.riotgames.com/api/token/v1'
-USERINFO_URL = "https://auth.riotgames.com/userinfo"
-RIOT_CLIENT_BUILD = requests.get('https://valorant-api.com/v1/version').json()['data']['riotClientBuild']
 
 
 @click.command()
@@ -52,7 +44,7 @@ def print_shop(user: str, pw: str):
 
     print(f"Username: {user}")
     for weapon in weapons:
-        print(f"\t{weapon.name} - Cost: {weapon.cost}")
+        print(f"\t{weapon.name} - Cost: {weapon.cost} - {weapon.image}")
 
     print()
 
