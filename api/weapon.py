@@ -15,7 +15,7 @@ WEAPON_RARITY_DICT = {
 
 class Weapon:
     def __init__(self, uuid: str, cost: int = 0, discount: int = 0, discountPercentage: int = 0, lang: str = "en"):
-        conn = sqlite3.connect("../res/data.db")
+        conn = sqlite3.connect("res/data.db")
         c = conn.cursor()
         with open(f"res/{lang}.yml", encoding="utf8") as f:
             transtable = f.read()

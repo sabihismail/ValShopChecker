@@ -29,29 +29,32 @@ def main(config: str):
 
     for account in parsed.get("accounts", []):
         if not account:
-            log.warning("Invalid value: %s", account)
+            log.warning("Invalid account: '%s'", account)
             continue
 
-        get_shop(account.get("user"), account.get("pw"))
+        print_shop(account.get("user", "").strip(), account.get("pw", "").strip())
 
 
-def get_shop(user: str, pw: str):
+def print_shop(user: str, pw: str):
     if not user or not pw:
-        log.warning("Missing credentials for user: %s pw: %s", user, pw)
+        log.warning("Missing credentials for user '%s' - '%s'", user, pw)
         return
 
     auth = Auth(user, pw)
     auth.auth()
 
     if not auth.auth_successful():
-        log.warning("Riot login failed for user: %s pw: %s", user, pw)
+        log.warning("Riot login failed for user: '%s' - '%s's", user, pw)
         return
 
     player = Player(auth.access_token, auth.entitlement, auth.region, auth.user_id)
     weapons = player.get_weapons()
 
+    print(f"Username: {user}")
     for weapon in weapons:
-        print(f"{weapon.name} - Cost: {weapon.cost}")
+        print(f"\t{weapon.name} - Cost: {weapon.cost}")
+
+    print()
 
 
 if __name__ == '__main__':
