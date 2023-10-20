@@ -3,6 +3,7 @@ from collections import namedtuple
 
 import requests
 
+from api.riot import RIOT_CLIENT_VERSION
 
 # server list
 AP_SERVER = "https://pd.ap.a.pvp.net"
@@ -28,7 +29,6 @@ UUID_CHROMAS = "3ad1b2b2-acdb-4524-852f-954a76ddae0a"
 UUID_PLAYER_TITLES = "de7caa6b-adf7-4588-bbd1-143831e786c6"
 
 # Initialized variables
-RIOT_CLIENT_VERSION = requests.get("https://valorant-api.com/v1/version", timeout=30).json()["data"]["riotClientVersion"]
 WEAPON_UUID_MAPPING = {x["uuid"]: x for x in requests.get("https://valorant-api.com/v1/weapons/skinlevels").json()["data"]}
 
 # Classes

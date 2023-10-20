@@ -1,4 +1,4 @@
-"""Source: https://github.com/GamerNoTitle/Valora/blob/master/utils/RiotLogin.py#L43"""
+"""Source: https://github.com/GamerNoTitle/Valora/blob/master/utils/RiotLogin.py"""
 
 import ssl
 import requests
@@ -24,15 +24,15 @@ CIPHERS = [
     "RSA+3DES"
 ]
 
-RIOT_CLIENT_BUILD = requests.get("https://valorant-api.com/v1/version").json()["data"]["riotClientBuild"]
+version_info = requests.get("https://valorant-api.com/v1/version").json()["data"]
+RIOT_CLIENT_BUILD = version_info["riotClientBuild"]
+RIOT_CLIENT_VERSION = version_info["riotClientVersion"]
 
-
-class URLS:
-    AUTH_URL = "https://auth.riotgames.com/api/v1/authorization"
-    REGION_URL = "https://riot-geo.pas.si.riotgames.com/pas/v1/product/valorant"
-    VERIFED_URL = "https://email-verification.riotgames.com/api/v1/account/status"
-    ENTITLEMENT_URL = "https://entitlements.auth.riotgames.com/api/token/v1"
-    USERINFO_URL = "https://auth.riotgames.com/userinfo"
+AUTH_URL = "https://auth.riotgames.com/api/v1/authorization"
+REGION_URL = "https://riot-geo.pas.si.riotgames.com/pas/v1/product/valorant"
+VERIFIED_URL = "https://email-verification.riotgames.com/api/v1/account/status"
+ENTITLEMENT_URL = "https://entitlements.auth.riotgames.com/api/token/v1"
+USERINFO_URL = "https://auth.riotgames.com/userinfo"
 
 
 class SSLAdapter(HTTPAdapter):
@@ -45,6 +45,7 @@ class SSLAdapter(HTTPAdapter):
 
 class Auth:
     def __init__(self, username: str, password: str, session=None):
+        self.region = None
         self.username = username
         self.password = password
         self.session = requests.Session() if not session else session
@@ -70,7 +71,8 @@ class Auth:
 
         self.base_headers = {
             "User-Agent": f"RiotClient/{RIOT_CLIENT_BUILD} riot-status (Windows;10;;Professional, x64)",
-            "Authorization": f"Bearer {self.access_token}", }
+            "Authorization": f"Bearer {self.access_token}"
+        }
         self.session.headers.update(self.base_headers)
 
         self.entitlement = self.get_entitlement_token()
@@ -92,12 +94,12 @@ class Auth:
         data = {"acr_values": "urn:riot:bronze", "claims": "", "client_id": "riot-client",
                 "nonce": "oYnVwCSrlS5IHKh7iI16oQ",
                 "redirect_uri": "http://localhost/redirect", "response_type": "token id_token",
-                "scope": "openid link ban lol_region", }
+                "scope": "openid link ban lol_region"}
         data2 = {"language": "en_US", "password": self.password,
-                 "remember": "true", "type": "auth", "username": self.username, }
+                 "remember": "true", "type": "auth", "username": self.username}
 
-        self.session.post(url=URLS.AUTH_URL, json=data)
-        r = self.session.put(url=URLS.AUTH_URL, json=data2)
+        self.session.post(url=AUTH_URL, json=data)
+        r = self.session.put(url=AUTH_URL, json=data2)
         data = r.json()
         if "access_token" in r.text:
             pattern = compile(
@@ -109,13 +111,11 @@ class Auth:
             return [token, token_id]
 
         elif "auth_failure" in r.text:
-            print(
-                F"{Fore.RED}[ACCOUNT DOESN'T EXIST] {Fore.RESET}{self.username}:{self.password}")
+            print(F"{Fore.RED}[ACCOUNT DOESN'T EXIST] {Fore.RESET}{self.username}:{self.password}")
             return "x"
 
         elif "rate_limited" in r.text:
-            print(
-                F"{Fore.YELLOW}[RATE LIMITED] {Fore.RESET}{self.username}:{self.password}")
+            print(F"{Fore.YELLOW}[RATE LIMITED] {Fore.RESET}{self.username}:{self.password}")
             time.sleep(40)
             return "x"
         elif self.MFA:
@@ -129,7 +129,7 @@ class Auth:
                 "code": ver_code,
                 "rememberDevice": self.remember,
             }
-            r = self.session.put(url=URLS.AUTH_URL, json=authdata)
+            r = self.session.put(url=AUTH_URL, json=authdata)
             data = r.json()
             if "access_token" in r.text:
                 pattern = compile(
@@ -152,17 +152,17 @@ class Auth:
             return "x"
 
     def get_entitlement_token(self):
-        r = self.session.post(URLS.ENTITLEMENT_URL, json={})
+        r = self.session.post(ENTITLEMENT_URL, json={})
         entitlement = r.json()["entitlements_token"]
         return entitlement
 
     def get_email_verified(self):
-        r = self.session.get(url=URLS.VERIFED_URL, json={})
+        r = self.session.get(url=VERIFIED_URL, json={})
         email_verified = r.json()["emailVerified"]
         return email_verified
 
     def get_userinfo(self):
-        r = self.session.get(url=URLS.USERINFO_URL, json={})
+        r = self.session.get(url=USERINFO_URL, json={})
         data = r.json()
         Sub = data["sub"]
         data1 = data["acct"]
@@ -211,8 +211,7 @@ class Auth:
             print("Auth failed!")
             return
 
-        print()
-        print(f"Accestoken: {self.access_token}")
+        print(f"Access token: {self.access_token}")
         print("-" * 50)
         print(f"Entitlements: {self.entitlement}")
         print("-" * 50)
