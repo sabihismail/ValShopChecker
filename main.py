@@ -1,4 +1,5 @@
 import logging
+import webbrowser
 
 import click
 import yaml
@@ -11,7 +12,8 @@ log = logging.getLogger(__name__)
 
 @click.command()
 @click.option("--config", "-c", default="config.yaml", help="Config file (default = config.yaml)")
-def main(config: str):
+@click.option("--open-images", is_flag=True, default=False, help="Whether to open all links in browser.")
+def main(config: str, open_images: bool):
     with open(config, 'r') as file:
         parsed = yaml.safe_load(file)
 
@@ -24,10 +26,21 @@ def main(config: str):
             log.warning("Invalid account: '%s'", account)
             continue
 
-        print_shop(account.get("user", "").strip(), account.get("pw", "").strip())
+        user = account.get("user", "").strip()
+        pw = account.get("pw", "").strip()
+        weapons = get_shop(user, pw)
+
+        print(f"Username: {user}")
+        for weapon in weapons:
+            print(f"\t{weapon.name} - Cost: {weapon.cost} - {weapon.image}")
+
+            if open_images:
+                webbrowser.open(weapon.image)
+
+        print()
 
 
-def print_shop(user: str, pw: str):
+def get_shop(user: str, pw: str):
     if not user or not pw:
         log.warning("Missing credentials for user '%s' - '%s'", user, pw)
         return
@@ -40,13 +53,7 @@ def print_shop(user: str, pw: str):
         return
 
     player = Player(auth.access_token, auth.entitlement, auth.region, auth.user_id)
-    weapons = player.get_weapons()
-
-    print(f"Username: {user}")
-    for weapon in weapons:
-        print(f"\t{weapon.name} - Cost: {weapon.cost} - {weapon.image}")
-
-    print()
+    return player.get_weapons()
 
 
 if __name__ == '__main__':
