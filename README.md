@@ -19,3 +19,18 @@ accounts:
 ```shell
 python ./main.py
 ```
+
+- To open all images automatically in browser:
+```shell
+python ./main.py --open-images
+```
+
+- To pass separate config file:
+```shell
+python ./main.py -c config2.yaml
+```
+
+- You can combine different parameters:
+```shell
+python ./main.py -c config2.yaml --open-images
+```
