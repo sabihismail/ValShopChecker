@@ -25,9 +25,14 @@ python ./main.py
 python ./main.py --open-images
 ```
 
-- To pass separate config file:
+- To pass a separate config file:
 ```shell
 python ./main.py -c config2.yaml
+```
+
+- To pass specific accounts to check:
+```shell
+python ./main.py --accounts profile1,profile3
 ```
 
 - You can combine different parameters:

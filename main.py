@@ -13,7 +13,8 @@ log = logging.getLogger(__name__)
 @click.command()
 @click.option("--config", "-c", default="config.yaml", help="Config file (default = config.yaml)")
 @click.option("--open-images", is_flag=True, default=False, help="Whether to open all links in browser.")
-def main(config: str, open_images: bool):
+@click.option("--accounts", default="", help="Specific accounts to check separated by a comma ','")
+def main(config: str, open_images: bool, accounts: str):
     with open(config, 'r') as file:
         parsed = yaml.safe_load(file)
 
@@ -21,6 +22,7 @@ def main(config: str, open_images: bool):
         log.error("Invalid config file: %s", config)
         return
 
+    accounts_to_check = set(accounts.split(","))
     for account in parsed.get("accounts", []):
         if not account:
             log.warning("Invalid account: '%s'", account)
@@ -28,9 +30,14 @@ def main(config: str, open_images: bool):
 
         user = account.get("user", "").strip()
         pw = account.get("pw", "").strip()
-        weapons = get_shop(user, pw)
+
+        if accounts_to_check and user not in accounts_to_check:
+            print(f"Skipping profile ${user} since it isn't present in '${accounts_to_check}'")
+            continue
 
         print(f"Username: {user}")
+
+        weapons = get_shop(user, pw)
         for weapon in weapons:
             print(f"\t{weapon.name} - Cost: {weapon.cost} - {weapon.image}")
 
