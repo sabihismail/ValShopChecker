@@ -14,7 +14,8 @@ log = logging.getLogger(__name__)
 @click.option("--config", "-c", default="config.yaml", help="Config file (default = config.yaml)")
 @click.option("--open-images", is_flag=True, default=False, help="Whether to open all links in browser.")
 @click.option("--accounts", default="", help="Specific accounts to check separated by a comma ','")
-def main(config: str, open_images: bool, accounts: str):
+@click.option("--dont-stall", is_flag=True, default=False, help="Whether to stall in program and wait for user input.")
+def main(config: str, open_images: bool, accounts: str, dont_stall: bool):
     with open(config, 'r') as file:
         parsed = yaml.safe_load(file)
 
@@ -45,6 +46,9 @@ def main(config: str, open_images: bool, accounts: str):
                 webbrowser.open(weapon.image)
 
         print()
+
+    if not dont_stall:
+        input("Press enter to exit...")
 
 
 def get_shop(user: str, pw: str):

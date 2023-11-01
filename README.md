@@ -35,7 +35,12 @@ python ./main.py -c config2.yaml
 python ./main.py --accounts profile1,profile3
 ```
 
+- Exit instead of printing and waiting for user input
+```shell
+python ./main.py --dont-stall
+```
+
 - You can combine different parameters:
 ```shell
-python ./main.py -c config2.yaml --open-images
+python ./main.py -c config2.yaml --open-images --dont-stall
 ```
