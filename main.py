@@ -9,6 +9,8 @@ from api.riot import Auth
 
 log = logging.getLogger(__name__)
 
+DEBUG_MODE = False
+
 
 @click.command()
 @click.option("--config", "-c", default="config.yaml", help="Config file (default = config.yaml)")
@@ -17,10 +19,10 @@ log = logging.getLogger(__name__)
 @click.option("--look-for", default=None, help="Specific skin to look for (case insensitive)")
 @click.option("--dont-stall", is_flag=True, default=False, help="Whether to stall in program and wait for user input.")
 def command(config: str, accounts: str, open_images: bool, look_for: str, dont_stall: bool):
-    main(config=config, accounts=accounts, open_images=open_images, look_for=look_for, dont_stall=dont_stall)
+    run(config=config, accounts=accounts, open_images=open_images, look_for=look_for, dont_stall=dont_stall)
 
 
-def main(config: str, open_images: bool, accounts: str, look_for: str, dont_stall: bool):
+def run(config: str, open_images: bool, accounts: str, look_for: str, dont_stall: bool):
     with open(config, "r") as file:
         parsed = yaml.safe_load(file)
 
@@ -38,7 +40,7 @@ def main(config: str, open_images: bool, accounts: str, look_for: str, dont_stal
         pw = account.get("pw", "").strip()
 
         if accounts_to_check and user not in accounts_to_check:
-            print(f"Skipping profile ${user} since it isn't present in '${accounts_to_check}'")
+            print(f"Skipping profile {user} since it isn't present in {accounts_to_check}")
             continue
 
         print(f"Username: {user}")
@@ -46,7 +48,7 @@ def main(config: str, open_images: bool, accounts: str, look_for: str, dont_stal
         look_for_set = set(x.lower().strip() for x in look_for.split(",")) if look_for else set()
         weapons = get_shop(user, pw)
         for weapon in weapons:
-            if not any(x in weapon.name.lower() for x in look_for_set):
+            if look_for_set and not any(x in weapon.name.lower() for x in look_for_set):
                 continue
 
             print(f"\t{weapon.name} - Cost: {weapon.cost} - {weapon.image}")
@@ -77,13 +79,16 @@ def get_shop(user: str, pw: str) -> list[Weapon] | None:
 
 
 if __name__ == "__main__":
-    with open(".env", "r") as filename:
-        username = filename.readline()
+    if not DEBUG_MODE:
+        command()
+    else:
+        with open(".env", "r") as filename:
+            username = filename.readline()
 
-    main(
-        config="config.yaml",
-        open_images=False,
-        accounts=username,
-        look_for="luna",
-        dont_stall=True
-    )
+        run(
+            config="config.yaml",
+            open_images=False,
+            accounts=username,
+            look_for="luna",
+            dont_stall=True
+        )
