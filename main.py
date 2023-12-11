@@ -43,7 +43,7 @@ def main(config: str, open_images: bool, accounts: str, look_for: str, dont_stal
 
         print(f"Username: {user}")
 
-        look_for_set = set(x.lower() for x in look_for.split(",")) if look_for else set()
+        look_for_set = set(x.lower().strip() for x in look_for.split(",")) if look_for else set()
         weapons = get_shop(user, pw)
         for weapon in weapons:
             if not any(x in weapon.name.lower() for x in look_for_set):
