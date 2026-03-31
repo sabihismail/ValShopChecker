@@ -1,0 +1,5 @@
+accounts:
+  - user: test
+    pw: pass
+  - user: account2
+    pw: pass3
